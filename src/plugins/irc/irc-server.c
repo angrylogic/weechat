@@ -73,8 +73,8 @@ struct t_irc_message *irc_msgq_last_msg = NULL;
 
 char *irc_server_option_string[IRC_SERVER_NUM_OPTIONS] =
 { "addresses", "proxy", "ipv6",
-  "ssl", "ssl_cert", "ssl_priorities", "ssl_dhkey_size", "ssl_fingerprint",
-  "ssl_verify",
+  "ssl", "ssl_cert", "ssl_cert_passwd", "ssl_priorities",
+  "ssl_dhkey_size", "ssl_fingerprint", "ssl_verify",
   "password", "capabilities",
   "sasl_mechanism", "sasl_username", "sasl_password", "sasl_timeout",
   "autoconnect", "autoreconnect", "autoreconnect_delay",
@@ -89,8 +89,8 @@ char *irc_server_option_string[IRC_SERVER_NUM_OPTIONS] =
 
 char *irc_server_option_default[IRC_SERVER_NUM_OPTIONS] =
 { "", "", "on",
-  "off", "", "NORMAL:-VERS-SSL3.0", "2048", "",
-  "on",
+  "off", "", "", "NORMAL:-VERS-SSL3.0",
+  "2048", "", "on",
   "", "",
   "plain", "", "", "15",
   "off", "on", "10",
@@ -3736,7 +3736,7 @@ irc_server_gnutls_callback (void *data, gnutls_session_t tls_session,
     gnutls_datum_t filedatum;
     unsigned int i, cert_list_len, status;
     time_t cert_time;
-    char *cert_path0, *cert_path1, *cert_path2, *cert_str;
+    char *cert_path0, *cert_path1, *cert_path2, *cert_str, *cert_passwd0;
     const char *weechat_dir, *fingerprint;
     int rc, ret, fingerprint_match, hostname_match, cert_temp_init;
 #if LIBGNUTLS_VERSION_NUMBER >= 0x010706
@@ -3972,6 +3972,8 @@ irc_server_gnutls_callback (void *data, gnutls_session_t tls_session,
         /* using client certificate if it exists */
         cert_path0 = (char *) IRC_SERVER_OPTION_STRING(
             server, IRC_SERVER_OPTION_SSL_CERT);
+        cert_passwd0 = (char *) IRC_SERVER_OPTION_STRING(
+            server, IRC_SERVER_OPTION_SSL_CERT_PASSWD);
         if (cert_path0 && cert_path0[0])
         {
             weechat_dir = weechat_info_get ("weechat_dir", "");
@@ -4008,8 +4010,8 @@ irc_server_gnutls_callback (void *data, gnutls_session_t tls_session,
                             server->tls_cert_key,
                             &filedatum,
                             GNUTLS_X509_FMT_PEM,
-                            NULL,
-                            GNUTLS_PKCS_PLAIN);
+                            (cert_passwd0 && cert_passwd0[0]) ? cert_passwd0 : NULL,
+                            (cert_passwd0 && cert_passwd0[0]) ? 0 : GNUTLS_PKCS_PLAIN);
                     }
                     if (ret < 0)
                     {
@@ -5039,6 +5041,9 @@ irc_server_add_to_infolist (struct t_infolist *infolist,
         return 0;
     if (!weechat_infolist_new_var_string (ptr_item, "ssl_cert",
                                           IRC_SERVER_OPTION_STRING(server, IRC_SERVER_OPTION_SSL_CERT)))
+        return 0;
+    if (!weechat_infolist_new_var_string (ptr_item, "ssl_cert_passwd",
+                                          IRC_SERVER_OPTION_STRING(server, IRC_SERVER_OPTION_SSL_CERT_PASSWD)))
         return 0;
     if (!weechat_infolist_new_var_string (ptr_item, "ssl_priorities",
                                           IRC_SERVER_OPTION_STRING(server, IRC_SERVER_OPTION_SSL_PRIORITIES)))

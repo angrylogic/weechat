@@ -4398,6 +4398,14 @@ irc_command_display_server (struct t_irc_server *server, int with_detail)
             weechat_printf (NULL, "  ssl_cert . . . . . . : %s'%s'",
                             IRC_COLOR_CHAT_VALUE,
                             weechat_config_string (server->options[IRC_SERVER_OPTION_SSL_CERT]));
+        /* ssl_cert_passwd */
+        if (weechat_config_option_is_null (server->options[IRC_SERVER_OPTION_SSL_CERT_PASSWD]))
+            weechat_printf (NULL, "  ssl_cert_passwd . . . . . . :   ('%s')",
+                            IRC_SERVER_OPTION_STRING(server, IRC_SERVER_OPTION_SSL_CERT_PASSWD));
+        else
+            weechat_printf (NULL, "  ssl_cert_passwd . . . . . . : %s'%s'",
+                            IRC_COLOR_CHAT_VALUE,
+                            weechat_config_string (server->options[IRC_SERVER_OPTION_SSL_CERT_PASSWD]));
         /* ssl_priorities */
         if (weechat_config_option_is_null (server->options[IRC_SERVER_OPTION_SSL_PRIORITIES]))
             weechat_printf (NULL, "  ssl_priorities . . . :   ('%s')",
